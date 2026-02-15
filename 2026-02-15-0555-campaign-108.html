@@ -265,7 +265,7 @@ details[open] > summary::before { content: '\25BC  '; }
       Variant: ${esc(campaign.variant_name)} &middot;
       ${formatTs(campaign.created_at)}
     </div>
-    ${campaign.notes ? `<div class="meta" style="margin-top:8px;color:#d6d3d1">${esc(campaign.notes)}</div>` : ''}
+    ${campaign.notes ? `<div class="meta" style="margin-top:8px;color:#d6d3d1;white-space:pre-wrap">${esc(campaign.notes)}</div>` : ''}
   `;
 
   // Summary stats
