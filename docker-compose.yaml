@@ -1,0 +1,97 @@
+# Chat DB App - Naive chat application backed by PostgreSQL
+#
+# Supports parallel instances via:
+#   - COMPOSE_PROJECT_NAME or -p flag for container/volume isolation
+#   - Port env vars for host port isolation
+#
+# Load profiles:
+#   Light (default): NUM_USERS=3, REQUEST_DELAY=2.0
+#   Heavy: NUM_USERS=20, REQUEST_DELAY=0.5, STREAM_RATIO=0.5
+
+services:
+  postgres:
+    image: postgres:16
+    ports:
+      - "${PG_HOST_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: chatapp
+      POSTGRES_PASSWORD: chatapp
+      POSTGRES_DB: chatdb
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chatapp -d chatdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    restart: on-failure
+
+  app:
+    build:
+      context: app
+      dockerfile: Dockerfile
+    ports:
+      - "${APP_HOST_PORT:-8000}:8000"
+    environment:
+      DATABASE_URL: "postgresql://chatapp:chatapp@postgres:5432/chatdb"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: on-failure
+
+  loadgen:
+    build:
+      context: loadgen
+      dockerfile: Dockerfile
+    environment:
+      APP_URL: "http://app:8000"
+      NUM_USERS: "${NUM_USERS:-3}"
+      REQUEST_DELAY: "${REQUEST_DELAY:-2.0}"
+      STREAM_RATIO: "${STREAM_RATIO:-0.3}"
+      RAMP_UP_SECONDS: "${RAMP_UP_SECONDS:-10}"
+      READ_RATIO: "${READ_RATIO:-0.3}"
+      BURST_MODE: "${BURST_MODE:-false}"
+      BURST_CONCURRENCY: "${BURST_CONCURRENCY:-1}"
+      SEARCH_ENABLED: "${SEARCH_ENABLED:-false}"
+      SEARCH_RATIO: "${SEARCH_RATIO:-0.0}"
+      BROADCAST_ENABLED: "${BROADCAST_ENABLED:-false}"
+      BROADCAST_INTERVAL: "${BROADCAST_INTERVAL:-30.0}"
+      BROADCAST_SERIALIZABLE: "${BROADCAST_SERIALIZABLE:-false}"
+      POLL_ENABLED: "${POLL_ENABLED:-false}"
+      POLL_RATIO: "${POLL_RATIO:-0.0}"
+      UNREAD_CHECK_RATIO: "${UNREAD_CHECK_RATIO:-0.0}"
+      MARK_READ_RATIO: "${MARK_READ_RATIO:-0.0}"
+      LIST_NOTIFS_RATIO: "${LIST_NOTIFS_RATIO:-0.0}"
+      MULTI_USER_COUNT: "${MULTI_USER_COUNT:-1}"
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: on-failure
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "${PROM_HOST_PORT:-9090}:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=7d
+      - --web.enable-lifecycle
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  postgres-data:
+  prometheus-data:
