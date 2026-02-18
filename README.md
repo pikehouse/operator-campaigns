@@ -4,6 +4,7 @@
 |----------|------|--------|--------|
 | 129 | 2026-02-17 | [View Report](https://htmlpreview.github.io/?https://github.com/pikehouse/operator-campaigns/blob/main/2026-02-17-2202-campaign-129.html) | - |
 | 128 | 2026-02-17 | [View Report](https://htmlpreview.github.io/?https://github.com/pikehouse/operator-campaigns/blob/main/2026-02-17-2202-campaign-128.html) | - |
+| 127 | 2026-02-17 | [View Report](https://htmlpreview.github.io/?https://github.com/pikehouse/operator-campaigns/blob/main/2026-02-17-2056-campaign-127.html) | - |
 | 126 | 2026-02-17 | [View Report](https://htmlpreview.github.io/?https://github.com/pikehouse/operator-campaigns/blob/main/2026-02-17-1811-campaign-126.html) | - |
 | 113 | 2026-02-15 | [View Report](https://htmlpreview.github.io/?https://github.com/pikehouse/operator-campaigns/blob/main/2026-02-15-2337-campaign-113.html) | - |
 | 108 | 2026-02-15 | [View Report](https://htmlpreview.github.io/?https://github.com/pikehouse/operator-campaigns/blob/main/2026-02-15-0555-campaign-108.html) | [Browse Source](https://github.com/pikehouse/operator-campaigns/tree/campaign-108-source) |
