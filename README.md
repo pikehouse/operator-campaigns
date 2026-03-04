@@ -2,6 +2,7 @@
 
 | Campaign | Date | Report | Source |
 |----------|------|--------|--------|
+| 132 | 2026-03-03 | [View Report](https://htmlpreview.github.io/?https://github.com/pikehouse/operator-campaigns/blob/main/2026-03-03-1909-campaign-132.html) | - |
 | 131 | 2026-03-03 | [View Report](https://htmlpreview.github.io/?https://github.com/pikehouse/operator-campaigns/blob/main/2026-03-03-1631-campaign-131.html) | - |
 | 129 | 2026-02-17 | [View Report](https://htmlpreview.github.io/?https://github.com/pikehouse/operator-campaigns/blob/main/2026-02-17-2202-campaign-129.html) | - |
 | 128 | 2026-02-17 | [View Report](https://htmlpreview.github.io/?https://github.com/pikehouse/operator-campaigns/blob/main/2026-02-17-2202-campaign-128.html) | - |
