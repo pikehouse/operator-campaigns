@@ -190,6 +190,7 @@ details[open] > summary::before { content: '\25BC  '; }
   .stat { min-width: 100px; }
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
 
@@ -229,6 +230,14 @@ details[open] > summary::before { content: '\25BC  '; }
     const d = document.createElement('div');
     d.textContent = s;
     return d.innerHTML;
+  }
+
+  function renderMd(s) {
+    if (!s) return '';
+    if (typeof marked !== 'undefined') {
+      try { return marked.parse(s); } catch(e) {}
+    }
+    return esc(s);
   }
 
   function formatTs(iso) {
@@ -385,7 +394,7 @@ details[open] > summary::before { content: '\25BC  '; }
       inner += `<li class="cmd-item">
         <code class="cmd-command">${esc(c.command)}</code>
         ${elapsed}
-        ${c.reasoning ? `<div class="cmd-reasoning">${esc(c.reasoning)}</div>` : ''}
+        ${c.reasoning ? `<div class="cmd-reasoning">${renderMd(c.reasoning)}</div>` : ''}
       </li>`;
     }
     inner += '</ul>';
@@ -397,24 +406,43 @@ details[open] > summary::before { content: '\25BC  '; }
 
   function renderReasoning(entries) {
     if (!entries || entries.length === 0) return '<div class="empty">No reasoning data</div>';
+
+    const reasoningOnly = entries.filter(e => e.entry_type !== 'tool_call');
+    const toolCalls = entries.filter(e => e.entry_type === 'tool_call');
+
     let out = '';
-    for (const e of entries) {
+    for (const e of reasoningOnly) {
       const elapsed = e.elapsed_seconds != null ? `<span class="elapsed-badge">+${e.elapsed_seconds}s</span>` : '';
-      const typeLabel = e.entry_type === 'tool_call'
-        ? `tool: ${esc(e.tool_name || 'unknown')}`
-        : esc(e.entry_type);
-      const content = e.content ? esc(e.content).slice(0, 500) : '';
-      const reasoning = e.reasoning ? `<div class="cmd-reasoning">${esc(e.reasoning)}</div>` : '';
-      out += `<details class="reasoning-entry" open>
-        <summary>
-          <span class="reasoning-type">${typeLabel}</span>
-          ${elapsed}
-          ${e.timestamp ? `<span class="elapsed-badge">${shortTs(e.timestamp)}</span>` : ''}
-        </summary>
-        ${content ? `<div class="reasoning-content">${content}</div>` : ''}
-        ${reasoning}
-      </details>`;
+      const content = e.content || '';
+      out += `<div class="reasoning-entry" style="border-left:3px solid #a8a29e;padding:8px 12px;margin-bottom:6px;border-radius:0 4px 4px 0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span class="reasoning-type">reasoning</span>
+          <span>${elapsed} ${e.timestamp ? `<span class="elapsed-badge">${shortTs(e.timestamp)}</span>` : ''}</span>
+        </div>
+        <div class="cmd-reasoning">${renderMd(content)}</div>
+      </div>`;
     }
+
+    if (toolCalls.length > 0) {
+      let toolHtml = '';
+      for (const e of toolCalls) {
+        const elapsed = e.elapsed_seconds != null ? `<span class="elapsed-badge">+${e.elapsed_seconds}s</span>` : '';
+        const toolLabel = `tool: ${esc(e.tool_name || 'unknown')}`;
+        const content = e.content ? esc(e.content) : '';
+        const reasoning = e.reasoning ? `<div class="cmd-reasoning">${renderMd(e.reasoning)}</div>` : '';
+        toolHtml += `<details class="reasoning-entry">
+          <summary>
+            <span class="reasoning-type">${toolLabel}</span>
+            ${elapsed}
+            ${e.timestamp ? `<span class="elapsed-badge">${shortTs(e.timestamp)}</span>` : ''}
+          </summary>
+          ${content ? `<div class="reasoning-content">${content}</div>` : ''}
+          ${reasoning}
+        </details>`;
+      }
+      out += `<details style="margin-top:12px"><summary style="cursor:pointer;color:#78716c;font-size:0.85em">Tool calls (${toolCalls.length})</summary>${toolHtml}</details>`;
+    }
+
     return out;
   }
 
@@ -443,7 +471,7 @@ details[open] > summary::before { content: '\25BC  '; }
 
     panel.innerHTML = `
       <h2>Trial #${t.id}: ${esc(t.chaos_description)}</h2>
-      <div class="conclusion-box${conclusionCls}">${esc(conclusionText)}</div>
+      <div class="conclusion-box${conclusionCls}">${renderMd(conclusionText)}</div>
 
       <div class="detail-grid" style="margin-top:16px">
         <div class="detail-section">
